@@ -1,9 +1,7 @@
-# CMakeLists.txt
-
 cmake_minimum_required(VERSION 3.10)
 project(CameraProject)
 
-# C++17 사용
+# C++17 사용 설정
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
@@ -11,25 +9,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(OpenCV REQUIRED)
 find_package(GTest REQUIRED)
 
-# include 디렉토리 설정
-include_directories(${OpenCV_INCLUDE_DIRS})
+# 테스트 활성화
+enable_testing()
 
-# 소스 파일 추가
+# Camera 라이브러리 생성
 add_library(Camera src/Camera.cpp)
-
-# Camera 라이브러리에 헤더 파일 경로 추가
 target_include_directories(Camera PUBLIC src/)
+target_link_libraries(Camera PUBLIC ${OpenCV_LIBS})
 
-# 테스트 실행 파일 추가
+# TestCamera 실행 파일 생성
 add_executable(TestCamera tests/test_camera.cpp)
-
-# TestCamera 대상에 헤더 파일 경로 추가
 target_include_directories(TestCamera PRIVATE src/)
-
-# 라이브러리 링크
-target_link_libraries(Camera ${OpenCV_LIBS})
-target_link_libraries(TestCamera Camera ${OpenCV_LIBS} GTest::GTest GTest::Main)
+target_link_libraries(TestCamera PRIVATE Camera GTest::GTest GTest::Main)
 
 # 테스트 등록
-enable_testing()
 add_test(NAME CameraTest COMMAND TestCamera)
