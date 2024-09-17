@@ -1,15 +1,25 @@
-// src/ObjectDetector.cpp
 #include "ObjectDetector.h"
+#include "utils.h"
 #include <fstream>
 #include <stdexcept>
+#include <opencv2/opencv.hpp>
+#include <torch/torch.h>
+#include <torch/script.h>
+using torch::indexing::Slice; // 추가된 부분
+using torch::indexing::None;  // 추가된 부분
 
+// ObjectDetector 생성자
 ObjectDetector::ObjectDetector(const std::string& modelPath, const std::string& classNamesPath, float confThreshold, float nmsThreshold)
     : confThreshold(confThreshold), nmsThreshold(nmsThreshold) {
 
-    // 모델 로드
-    net = cv::dnn::readNetFromONNX(modelPath);
-    if (net.empty()) {
-        throw std::runtime_error("모델을 불러올 수 없습니다: " + modelPath);
+    // TorchScript 모델 로드
+    try {
+        model = torch::jit::load(modelPath);  // 모델 로드
+        model.eval();  // 평가 모드 설정
+        torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);  // CUDA 또는 CPU 선택
+        model.to(device);
+    } catch (const c10::Error& e) {
+        throw std::runtime_error("모델을 로드하는 데 실패했습니다: " + modelPath);
     }
 
     // 클래스 이름 로드
@@ -17,7 +27,7 @@ ObjectDetector::ObjectDetector(const std::string& modelPath, const std::string& 
 }
 
 void ObjectDetector::loadClassNames(const std::string& classNamesPath) {
-    std::ifstream ifs(classNamesPath.c_str());
+    std::ifstream ifs(classNamesPath);
     if (!ifs.is_open()) {
         throw std::runtime_error("클래스 이름 파일을 열 수 없습니다: " + classNamesPath);
     }
@@ -26,76 +36,51 @@ void ObjectDetector::loadClassNames(const std::string& classNamesPath) {
     while (std::getline(ifs, line)) {
         classNames.push_back(line);
     }
+
+    // // 클래스 이름을 출력하여 확인
+    // for (const auto& className : classNames) {
+    //     std::cout << className << std::endl;
+    // }
 }
 
+// 객체 탐지 함수
 std::vector<Detection> ObjectDetector::detect(const cv::Mat& frame) {
-    // 입력 이미지 전처리
-    cv::Mat blob;
-    cv::dnn::blobFromImage(frame, blob, 1/255.0, cv::Size(640, 640), cv::Scalar(), true, false);
+    // 이미지 전처리
+    cv::Mat input_image;
+    float resize_scale = letterbox(frame, input_image, {640, 640});
 
-    // 추론
-    net.setInput(blob);
-    std::vector<cv::Mat> outputs;
-    net.forward(outputs, net.getUnconnectedOutLayersNames());
+    torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);  // CUDA 또는 CPU 선택
 
-    // 후처리
+    torch::Tensor image_tensor = torch::from_blob(input_image.data, {1, input_image.rows, input_image.cols, 3}, torch::kByte).to(device);
+    image_tensor = image_tensor.permute({0, 3, 1, 2}).toType(torch::kFloat32).div(255);
+
+    // 모델 추론
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(image_tensor);
+    auto output = model.forward(inputs).toTensor();
+
+    // 추론 결과 후처리 (NMS 포함)
+    auto keep = non_max_suppression(output, confThreshold, nmsThreshold)[0];
+
+    // 감지 결과를 저장
     std::vector<Detection> detections;
-    // outputs 파싱 로직은 YOLOv8 모델의 출력 형식에 따라 작성해야 합니다.
-    // 아래는 일반적인 YOLO 모델의 출력 형식에 따른 예시입니다.
+    for (int i = 0; i < keep.size(0); ++i) {
+        auto box = keep[i].slice(0, 0, 4);
+        auto conf = keep[i][4].item<float>();
+        auto class_id = static_cast<int>(keep[i][5].item<float>());
 
-    const int dimensions = 85; // 클래스 수 + 5
-    const int rows = outputs[0].size[1];
+        float x1 = box[0].item<float>() * frame.cols;
+        float y1 = box[1].item<float>() * frame.rows;
+        float x2 = box[2].item<float>() * frame.cols;
+        float y2 = box[3].item<float>() * frame.rows;
 
-    float* data = (float*)outputs[0].data;
+        Detection detection;
+        detection.box = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));
+        detection.confidence = conf;
+        detection.class_id = class_id;
 
-    for (int i = 0; i < rows; ++i) {
-        float confidence = data[4];
-        if (confidence >= confThreshold) {
-            // 클래스 확률
-            float* classScores = data + 5;
-            cv::Mat scores(1, classNames.size(), CV_32FC1, classScores);
-            cv::Point classIdPoint;
-            double maxClassScore;
-            cv::minMaxLoc(scores, 0, &maxClassScore, 0, &classIdPoint);
-
-            if (maxClassScore > confThreshold) {
-                // 바운딩 박스 좌표 계산
-                float cx = data[0];
-                float cy = data[1];
-                float w = data[2];
-                float h = data[3];
-
-                int left = static_cast<int>((cx - w / 2) * frame.cols);
-                int top = static_cast<int>((cy - h / 2) * frame.rows);
-                int width = static_cast<int>(w * frame.cols);
-                int height = static_cast<int>(h * frame.rows);
-
-                Detection det;
-                det.box = cv::Rect(left, top, width, height);
-                det.confidence = static_cast<float>(maxClassScore);
-                det.class_id = classIdPoint.x;
-
-                detections.push_back(det);
-            }
-        }
-        data += dimensions;
+        detections.push_back(detection);
     }
 
-    // NMS(Non-Maximum Suppression) 적용
-    std::vector<int> indices;
-    std::vector<cv::Rect> boxes;
-    std::vector<float> confidences;
-    for (const auto& det : detections) {
-        boxes.push_back(det.box);
-        confidences.push_back(det.confidence);
-    }
-
-    cv::dnn::NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indices);
-
-    std::vector<Detection> nmsDetections;
-    for (int idx : indices) {
-        nmsDetections.push_back(detections[idx]);
-    }
-
-    return nmsDetections;
+    return detections;
 }

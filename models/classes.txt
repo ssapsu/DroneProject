@@ -1,0 +1,30 @@
+person
+bicycle
+car
+motorcycle
+airplane
+bus
+train
+truck
+boat
+traffic light
+fire hydrant
+elephant
+bear
+zebra
+snowboard
+sports ball
+kite
+lass
+cup
+fork
+knife
+pizza
+donut
+cake
+chair
+keyboard
+cell phone
+teddy bear
+hair drier
+toothbrush
