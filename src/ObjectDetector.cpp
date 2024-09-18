@@ -14,9 +14,9 @@ ObjectDetector::ObjectDetector(const std::string& modelPath, const std::string& 
 
     // TorchScript 모델 로드
     try {
-        model = torch::jit::load(modelPath);  // 모델 로드
-        model.eval();  // 평가 모드 설정
         torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);  // CUDA 또는 CPU 선택
+        model = torch::jit::load(modelPath, device);  // 모델 로드
+        model.eval();  // 평가 모드 설정
         model.to(device);
     } catch (const c10::Error& e) {
         throw std::runtime_error("모델을 로드하는 데 실패했습니다: " + modelPath);
