@@ -14,18 +14,5 @@ find_package(Torch REQUIRED)
 enable_testing()
 
 # Camera 라이브러리 생성
-add_library(Camera src/Camera.cpp src/ObjectDetector.cpp src/utils.cpp)
-target_include_directories(Camera PUBLIC src/)
-target_link_libraries(Camera PUBLIC ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-add_library(ObjectDetector src/utils.cpp)
-target_include_directories(ObjectDetector PUBLIC src/)
-target_link_libraries(ObjectDetector PUBLIC ${OpenCV_LIBS} ${TORCH_LIBRARIES})
-
-# TestObjectDetector 실행 파일 생성
-add_executable(TestObjectDetector tests/test_object_detector.cpp)
-target_include_directories(TestObjectDetector PRIVATE src/)
-target_link_libraries(TestObjectDetector PRIVATE Camera GTest::GTest GTest::Main)
-
-# 테스트 등록
-add_test(NAME ObjectDetectorTest COMMAND TestObjectDetector)
+add_subdirectory(src)
+add_subdirectory(tests)

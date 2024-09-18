@@ -1,8 +1,11 @@
+#pragma once
+
+#include <torch/torch.h>
+
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <opencv2/opencv.hpp>
-#include <torch/torch.h>
 #include <vector>
 
 // generate_scale 함수 선언
