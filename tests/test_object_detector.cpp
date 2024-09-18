@@ -11,7 +11,7 @@ TEST(ObjectDetectorTest, DetectObjects) {
     // TorchScript 모델과 클래스 이름 경로 설정
     std::string modelPath = projectRoot + "models/yolov8s.torchscript";  // TorchScript 모델 경로
     std::string classNamesPath = projectRoot + "models/classes.txt";  // 클래스 이름 경로
-    std::string imagePath = projectRoot + "tests/images/bus.jpg";  // 테스트 이미지 경로
+    std::string imagePath = projectRoot + "images/bus.jpg";  // 테스트 이미지 경로
 
     // 경로 출력 (디버깅용)
     std::cout << "Model path: " << modelPath << std::endl;
