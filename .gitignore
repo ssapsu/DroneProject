@@ -3,3 +3,4 @@ build/
 venv/
 images/
 models/
+output/

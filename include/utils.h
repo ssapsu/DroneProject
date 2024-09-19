@@ -7,6 +7,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <ObjectDetector.h>
 
 // generate_scale 함수 선언
 float generate_scale(const cv::Mat& image, const std::vector<int>& target_size);
@@ -25,5 +26,8 @@ torch::Tensor nms(const torch::Tensor& bboxes, const torch::Tensor& scores, floa
 
 // scale_boxes 함수 선언
 torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& boxes, const std::vector<int>& img0_shape);
+
+// draw_and_save_results 함수 선언
+void draw_and_save_results(const cv::Mat& original_image, const std::vector<Detection>& detections, const std::vector<std::string>& class_names, const std::string& output_image_path);
 
 #endif // UTILS_H

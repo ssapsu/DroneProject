@@ -43,4 +43,7 @@ TEST(ObjectDetectorTest, DetectObjects) {
                   << ", " << det.box.width << ", " << det.box.height << "]"
                   << std::endl;
     }
+
+    // 감지된 객체를 이미지에 그리고 저장
+    draw_and_save_results(image, detections, detector.getClassNames(), "../output/detected_objects.jpg");
 }
