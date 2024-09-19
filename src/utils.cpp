@@ -153,3 +153,48 @@ torch::Tensor nms(const torch::Tensor& bboxes, const torch::Tensor& scores, floa
 
     return keep.narrow(0, 0, num_to_keep);
 }
+
+torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& boxes, const std::vector<int>& img0_shape) {
+    auto gain = (std::min)((float)img1_shape[0] / img0_shape[0], (float)img1_shape[1] / img0_shape[1]);
+    auto pad0 = std::round((float)(img1_shape[1] - img0_shape[1] * gain) / 2. - 0.1);
+    auto pad1 = std::round((float)(img1_shape[0] - img0_shape[0] * gain) / 2. - 0.1);
+
+    boxes.index_put_({"...", 0}, boxes.index({"...", 0}) - pad0);
+    boxes.index_put_({"...", 2}, boxes.index({"...", 2}) - pad0);
+    boxes.index_put_({"...", 1}, boxes.index({"...", 1}) - pad1);
+    boxes.index_put_({"...", 3}, boxes.index({"...", 3}) - pad1);
+    boxes.index_put_({"...", Slice(None, 4)}, boxes.index({"...", Slice(None, 4)}).div(gain));
+    return boxes;
+}
+
+void draw_and_save_results(const cv::Mat& original_image, const std::vector<Detection>& detections, const std::vector<std::string>& class_names, const std::string& output_image_path) {
+    cv::Mat image_with_boxes = original_image.clone();  // 원본 이미지를 복사하여 작업
+    for (const auto& detection : detections) {
+        int x1 = detection.box.x;
+        int y1 = detection.box.y;
+        int x2 = detection.box.x + detection.box.width;
+        int y2 = detection.box.y + detection.box.height;
+        float confidence = detection.confidence;
+        int class_id = detection.class_id;
+
+        // 바운딩 박스 그리기
+        cv::rectangle(image_with_boxes, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 0), 2);
+
+        // 클래스 이름과 confidence score
+        std::string label = class_names[class_id] + " " + cv::format("%.2f", confidence);
+
+        // 텍스트 크기 계산 및 라벨 박스 그리기
+        int baseLine;
+        cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+        y1 = std::max(y1, label_size.height);  // 텍스트가 이미지 경계를 넘지 않게 설정
+        cv::rectangle(image_with_boxes, cv::Point(x1, y1 - label_size.height),
+                      cv::Point(x1 + label_size.width, y1 + baseLine), cv::Scalar(0, 255, 0), cv::FILLED);
+
+        // 텍스트 그리기
+        cv::putText(image_with_boxes, label, cv::Point(x1, y1), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0), 1);
+    }
+
+    // 이미지 파일로 저장
+    cv::imwrite(output_image_path, image_with_boxes);
+    std::cout << "Detection results saved to " << output_image_path << std::endl;
+}

@@ -22,6 +22,9 @@ TEST(ObjectDetectorTest, DetectObjects) {
     cv::Mat image = cv::imread(imagePath);
     ASSERT_FALSE(image.empty()) << "샘플 이미지를 불러올 수 없습니다.";
 
+    // 입력 이미지 크기 확인
+    std::cout << "Image size: " << image.cols << "x" << image.rows << std::endl;
+
     // ObjectDetector 인스턴스를 생성합니다.
     ObjectDetector detector(modelPath, classNamesPath);
 
@@ -40,4 +43,7 @@ TEST(ObjectDetectorTest, DetectObjects) {
                   << ", " << det.box.width << ", " << det.box.height << "]"
                   << std::endl;
     }
+
+    // 감지된 객체를 이미지에 그리고 저장
+    draw_and_save_results(image, detections, detector.getClassNames(), "../output/detected_objects.jpg");
 }

@@ -20,6 +20,8 @@ public:
     // 객체 탐지를 수행하는 함수
     std::vector<Detection> detect(const cv::Mat& frame);
 
+    const std::vector<std::string>& getClassNames() const { return classNames; }
+
 private:
     // TorchScript 모델을 위한 변수
     torch::jit::script::Module model;
