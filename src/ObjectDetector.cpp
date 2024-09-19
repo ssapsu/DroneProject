@@ -51,8 +51,9 @@ std::vector<Detection> ObjectDetector::detect(const cv::Mat& frame) {
 
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);  // CUDA 또는 CPU 선택
 
-    torch::Tensor image_tensor = torch::from_blob(input_image.data, {1, input_image.rows, input_image.cols, 3}, torch::kByte).to(device);
-    image_tensor = image_tensor.permute({0, 3, 1, 2}).toType(torch::kFloat32).div(255);
+    torch::Tensor image_tensor = torch::from_blob(input_image.data, {input_image.rows, input_image.cols, 3}, torch::kByte).to(device);
+    image_tensor = image_tensor.toType(torch::kFloat32).div(255);
+    image_tensor = image_tensor.permute({2, 0, 1}).unsqueeze(0);  // 차원 순서 수정
 
     // 모델 추론
     std::vector<torch::jit::IValue> inputs;
@@ -62,6 +63,15 @@ std::vector<Detection> ObjectDetector::detect(const cv::Mat& frame) {
     // 추론 결과 후처리 (NMS 포함)
     auto keep = non_max_suppression(output, confThreshold, nmsThreshold)[0];
 
+    // NMS 후 바운딩 박스 좌표 가져오기
+    torch::Tensor boxes = keep.index({Slice(), Slice(None, 4)});
+
+    // 이미지 크기에 맞게 박스 스케일링
+    boxes = scale_boxes({input_image.rows, input_image.cols}, boxes, {frame.rows, frame.cols});
+
+    // 스케일링된 박스를 원래 텐서에 반영
+    keep.index_put_({Slice(), Slice(None, 4)}, boxes);
+
     // 감지 결과를 저장
     std::vector<Detection> detections;
     for (int i = 0; i < keep.size(0); ++i) {
@@ -69,10 +79,10 @@ std::vector<Detection> ObjectDetector::detect(const cv::Mat& frame) {
         auto conf = keep[i][4].item<float>();
         auto class_id = static_cast<int>(keep[i][5].item<float>());
 
-        float x1 = box[0].item<float>() * frame.cols;
-        float y1 = box[1].item<float>() * frame.rows;
-        float x2 = box[2].item<float>() * frame.cols;
-        float y2 = box[3].item<float>() * frame.rows;
+        float x1 = box[0].item<float>();
+        float y1 = box[1].item<float>();
+        float x2 = box[2].item<float>();
+        float y2 = box[3].item<float>();
 
         Detection detection;
         detection.box = cv::Rect(cv::Point(x1, y1), cv::Point(x2, y2));

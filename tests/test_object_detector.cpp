@@ -11,7 +11,7 @@ TEST(ObjectDetectorTest, DetectObjects) {
     // TorchScript 모델과 클래스 이름 경로 설정
     std::string modelPath = projectRoot + "models/yolov8s.torchscript";  // TorchScript 모델 경로
     std::string classNamesPath = projectRoot + "models/classes.txt";  // 클래스 이름 경로
-    std::string imagePath = projectRoot + "images/bus.jpeg";  // 테스트 이미지 경로
+    std::string imagePath = projectRoot + "images/bus.jpg";  // 테스트 이미지 경로
 
     // 경로 출력 (디버깅용)
     std::cout << "Model path: " << modelPath << std::endl;
@@ -21,6 +21,9 @@ TEST(ObjectDetectorTest, DetectObjects) {
     // 샘플 이미지를 불러옵니다.
     cv::Mat image = cv::imread(imagePath);
     ASSERT_FALSE(image.empty()) << "샘플 이미지를 불러올 수 없습니다.";
+
+    // 입력 이미지 크기 확인
+    std::cout << "Image size: " << image.cols << "x" << image.rows << std::endl;
 
     // ObjectDetector 인스턴스를 생성합니다.
     ObjectDetector detector(modelPath, classNamesPath);

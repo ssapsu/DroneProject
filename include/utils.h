@@ -23,4 +23,7 @@ torch::Tensor xywh2xyxy(const torch::Tensor& x);
 // nms 함수 선언
 torch::Tensor nms(const torch::Tensor& bboxes, const torch::Tensor& scores, float iou_threshold);
 
+// scale_boxes 함수 선언
+torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& boxes, const std::vector<int>& img0_shape);
+
 #endif // UTILS_H
