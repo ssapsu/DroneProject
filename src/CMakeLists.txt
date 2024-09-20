@@ -29,3 +29,7 @@ target_include_directories(Camera PUBLIC ${PROJECT_SOURCE_DIR}/include ${OpenCV_
 target_include_directories(ObjectDetector PUBLIC ${PROJECT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS})
 target_include_directories(utils PUBLIC ${PROJECT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS})
 target_include_directories(ObjectDistanceDetector PUBLIC ${PROJECT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS})
+
+add_executable(main main.cpp)
+target_include_directories(main PUBLIC ${PROJECT_SOURCE_DIR}/include ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(main PUBLIC ${OpenCV_LIBS} ${TORCH_LIBRARIES} Camera ObjectDetector ObjectDistanceDetector)
