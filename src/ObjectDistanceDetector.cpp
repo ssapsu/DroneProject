@@ -26,7 +26,7 @@ void processDetections(const std::vector<Detection>& detections, const cv::Mat& 
         float box_width_px = detection.box.width;
 
         // Calculate the distance to the object
-        float distance = distanceToCamera(KNOWN_OBJECT_WIDTH, focal_length_px, box_width_px);
+        float distance = distanceToCamera(PARCEL_WIDTH, focal_length_px, box_width_px);
 
         // Display the results
         std::cout << "Class ID: " << detection.class_id
