@@ -20,8 +20,7 @@ Camera::Camera(int deviceID, CameraType type)
             framerate,
             flip_method
         );
-
-        cap.open(pipeline, cv::CAP_GSTREAMER);
+        cap = cv::VideoCapture(pipeline, cv::CAP_GSTREAMER);
     } else {
         // 일반 웹캠 초기화
         cap.open(deviceID);
@@ -34,12 +33,12 @@ Camera::Camera(int deviceID, CameraType type)
 
 cv::Mat Camera::getFrame() {
     cv::Mat frame;
-    // BGR 형식으로 프레임 받기
+    cap.read(frame);
     // cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
     return frame;
 }
 
-std::string Camera::gstreamerPipeline(int capture_width, int capture_height, int display_width, int display_height, int framerate, int flip_method) {
+std::string Camera::gstreamerPipeline (int capture_width, int capture_height, int display_width, int display_height, int framerate, int flip_method) {
     return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(capture_width) +
            ", height=(int)" + std::to_string(capture_height) + ", framerate=(fraction)" + std::to_string(framerate) +
            "/1 ! nvvidconv flip-method=" + std::to_string(flip_method) + " ! video/x-raw, width=(int)" +
