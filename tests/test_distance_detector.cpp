@@ -5,11 +5,15 @@
 
 TEST(ObjectDistanceTest, EstimateDistance) {
     // Load the test image
-    cv::Mat image = cv::imread("../images/image_17.jpg");
+    std::string projectRoot = PROJECT_ROOT_DIR;
+    std::string image_path = projectRoot + "/images/bus.jpeg";
+    cv::Mat image = cv::imread(image_path);
     ASSERT_FALSE(image.empty()) << "Failed to load image.";
 
     // Initialize ObjectDetector and run detection
-    ObjectDetector detector("../models/best.torchscript", "../models/parcel.txt");
+    std::string model_path = projectRoot + "/models/yolov8s.torchscript";
+    std::string class_names_path = projectRoot + "/models/classes.txt";
+    ObjectDetector detector("model_path", "class_names_path");
     std::vector<Detection> detections = detector.detect(image);
 
     // Ensure objects were detected

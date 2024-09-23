@@ -47,6 +47,7 @@ void ObjectDetector::loadClassNames(const std::string& classNamesPath) {
 std::vector<Detection> ObjectDetector::detect(const cv::Mat& frame) {
     // 이미지 전처리
     cv::Mat input_image;
+    cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
     float resize_scale = letterbox(frame, input_image, {640, 640});
 
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);  // CUDA 또는 CPU 선택

@@ -6,12 +6,12 @@
 
 TEST(ObjectDetectorTest, DetectObjects) {
     // 프로젝트 루트 디렉토리를 사용하여 경로 설정
-    std::string projectRoot = "../";
+    std::string projectRoot = PROJECT_ROOT_DIR;
 
     // TorchScript 모델과 클래스 이름 경로 설정
-    std::string modelPath = projectRoot + "models/yolov8s.torchscript";  // TorchScript 모델 경로
-    std::string classNamesPath = projectRoot + "models/classes.txt";  // 클래스 이름 경로
-    std::string imagePath = projectRoot + "images/bus.jpeg";  // 테스트 이미지 경로
+    std::string modelPath = projectRoot + "/models/yolov8s.torchscript";  // TorchScript 모델 경로
+    std::string classNamesPath = projectRoot + "/models/classes.txt";  // 클래스 이름 경로
+    std::string imagePath = projectRoot + "/images/bus.jpeg";  // 테스트 이미지 경로
 
     // 경로 출력 (디버깅용)
     std::cout << "Model path: " << modelPath << std::endl;
@@ -45,17 +45,17 @@ TEST(ObjectDetectorTest, DetectObjects) {
     }
 
     // 감지된 객체를 이미지에 그리고 저장
-    draw_and_save_results(image, detections, detector.getClassNames(), "../output/detected_objects.jpg");
+    draw_and_save_results(image, detections, detector.getClassNames(), projectRoot + "/output/detected_objects.jpg");
 }
 
 TEST(ObjectDetectorTest, DetectParcel) {
     // 프로젝트 루트 디렉토리를 사용하여 경로 설정
-    std::string projectRoot = "../";
+    std::string projectRoot = PROJECT_ROOT_DIR;
 
     // TorchScript 모델과 클래스 이름 경로 설정
-    std::string modelPath = projectRoot + "models/best.torchscript";  // TorchScript 모델 경로
-    std::string classNamesPath = projectRoot + "models/parcel.txt";  // 클래스 이름 경로
-    std::string imagePath = projectRoot + "images/image_17.jpg";  // 테스트 이미지 경로
+    std::string modelPath = projectRoot + "/models/yolov8s.torchscript";  // TorchScript 모델 경로
+    std::string classNamesPath = projectRoot + "/models/classes.txt";  // 클래스 이름 경로
+    std::string imagePath = projectRoot + "/images/bus.jpeg";  // 테스트 이미지 경로
 
     // 경로 출력 (디버깅용)
     std::cout << "Model path: " << modelPath << std::endl;
@@ -89,7 +89,7 @@ TEST(ObjectDetectorTest, DetectParcel) {
     }
 
     // 감지된 객체를 이미지에 그리고 저장
-    draw_and_save_results(image, detections, detector.getClassNames(), "../output/detected_objects.jpg");
+    draw_and_save_results(image, detections, detector.getClassNames(), "/output/detected_objects.jpg");
 }
 
 int main(int argc, char **argv) {

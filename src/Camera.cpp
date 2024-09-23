@@ -35,7 +35,7 @@ Camera::Camera(int deviceID, CameraType type)
 cv::Mat Camera::getFrame() {
     cv::Mat frame;
     // BGR 형식으로 프레임 받기
-    cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
+    // cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
     return frame;
 }
 

@@ -9,10 +9,13 @@
 int main() {
     try {
         // 카메라 초기화 (웹캠 사용 예시)
-        Camera camera(0, CameraType::WEBCAM);  // USB 카메라 또는 CSI 카메라 선택 가능
+        Camera camera(0, CameraType::CSI);  // USB 카메라 또는 CSI 카메라 선택 가능
 
         // ObjectDetector 초기화
-        ObjectDetector detector("../models/best.torchscript", "../models/parcel.txt", 0.5f, 0.4f);  // 모델 경로와 클래스 이름 경로
+        std::string projectRoot = PROJECT_ROOT_DIR;
+        std::string model_path = projectRoot + "/models/yolov8s.torchscript";
+        std::string class_names_path = projectRoot + "/models/classes.txt";
+        ObjectDetector detector(model_path, class_names_path, 0.5f, 0.4f);  // 모델 경로와 클래스 이름 경로
 
         while (true) {
             // 카메라에서 프레임 읽기
