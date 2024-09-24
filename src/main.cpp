@@ -1,51 +1,73 @@
 #include "Camera.h"
 #include "ObjectDetector.h"
-
-#include "Camera.h"
-#include "ObjectDetector.h"
 #include <opencv2/opencv.hpp>
+#include "ObjectDistanceDetector.h"  // Include the distance calculation functions
 #include <iostream>
+#include <filesystem>
 
 int main() {
     try {
-        // 카메라 초기화 (웹캠 사용 예시)
-        Camera camera(0, CameraType::CSI);  // USB 카메라 또는 CSI 카메라 선택 가능
+        // Initialize camera
+        std::cout << "Initializing camera..." << std::endl;
+        Camera camera(0, CameraType::CSI);
 
-        // ObjectDetector 초기화
+        // Initialize ObjectDetector
+        std::cout << "Initializing object detector..." << std::endl;
         std::string projectRoot = PROJECT_ROOT_DIR;
-        std::string model_path = projectRoot + "/models/yolov8s.torchscript";
-        std::string class_names_path = projectRoot + "/models/classes.txt";
-        ObjectDetector detector(model_path, class_names_path, 0.5f, 0.4f);  // 모델 경로와 클래스 이름 경로
+        std::string model_path = projectRoot + "/models/best.torchscript";
+        std::string class_names_path = projectRoot + "/models/parcel.txt";
+
+        if (!std::filesystem::exists(model_path)) {
+            throw std::runtime_error("Model file not found at " + model_path);
+        }
+        if (!std::filesystem::exists(class_names_path)) {
+            throw std::runtime_error("Class names file not found at " + class_names_path);
+        }
+
+        ObjectDetector detector(model_path, class_names_path, 0.5f, 0.4f);
 
         while (true) {
-            // 카메라에서 프레임 읽기
-            cv::Mat frame = camera.getFrame();
-            if (frame.empty()) {
-                std::cerr << "빈 프레임을 받았습니다. 카메라 연결을 확인하세요." << std::endl;
-                break;
-            }
+            try {
+                // Capture frame
+                cv::Mat frame = camera.getFrame();
 
-            // 객체 디텍션 수행
-            std::vector<Detection> detections = detector.detect(frame);
+                if (frame.empty()) {
+                    std::cerr << "Received empty frame. Skipping." << std::endl;
+                    continue;
+                }
 
+                // Perform object detection
+                std::vector<Detection> detections = detector.detect(frame);
 
-            // 디텍션 결과를 프레임에 그리기
-            for (const auto& detection : detections) {
-                cv::rectangle(frame, detection.box, cv::Scalar(0, 255, 0), 2);  // 바운딩 박스 그리기
-                std::string label = detector.getClassNames()[detection.class_id] + ": " + cv::format("%.2f", detection.confidence);
-                cv::putText(frame, label, detection.box.tl(), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(255, 255, 255), 1);
-            }
+                // Draw detections on the frame
+                for (const auto& detection : detections) {
+                    if (detection.box.area() <= 0 || detection.class_id < 0 ||
+                        detection.class_id >= detector.getClassNames().size()) {
+                        continue;
+                    }
+                    cv::rectangle(frame, detection.box, cv::Scalar(0, 255, 0), 2);
+                    std::string label = detector.getClassNames()[detection.class_id] +
+                                        ": " + cv::format("%.2f", detection.confidence);
+                    cv::putText(frame, label, detection.box.tl(), cv::FONT_HERSHEY_SIMPLEX,
+                                0.5, cv::Scalar(255, 255, 255), 1);
+                }
+                processDetections(detections, frame);
+                // Display the frame
+                cv::imshow("Object Detection", frame);
 
-            // 결과 프레임을 디스플레이
-            cv::imshow("Object Detection", frame);
+                // Exit if 'q' is pressed
+                if (cv::waitKey(1) == 'q') {
+                    break;
+                }
 
-            // 'q' 키를 누르면 종료
-            if (cv::waitKey(1) == 'q') {
-                break;
+            } catch (const std::exception& e) {
+                std::cerr << "Error in loop: " << e.what() << std::endl;
+                // Optionally, sleep or wait before continuing
+                continue;
             }
         }
     } catch (const std::exception& e) {
-        std::cerr << "오류 발생: " << e.what() << std::endl;
+        std::cerr << "Fatal error: " << e.what() << std::endl;
     }
 
     return 0;
