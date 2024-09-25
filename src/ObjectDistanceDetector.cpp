@@ -24,7 +24,7 @@ void processDetections(const std::vector<Detection>& detections, const cv::Mat& 
     // Iterate over each detected object
     for (const auto& detection : detections) {
         // Extract the width of the bounding box
-        float box_width_px = std::min(detection.box.width, detection.box.height);
+        float box_width_px = std::max(detection.box.width, detection.box.height);
 
         // Calculate the distance to the object
         float distance = distanceToCamera(PARCEL_WIDTH, focal_length_px, box_width_px);
