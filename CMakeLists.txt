@@ -8,8 +8,11 @@ set(PROJECT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 # Optionally, print the project root for debugging purposes
 message(STATUS "Project root directory: ${PROJECT_ROOT_DIR}")
 
-set(OpenCV_DIR "/usr/lib/cmake/opencv")
-set(Torch_DIR "/home/singleuav_causlab/.local/lib/python3.10/site-packages/torch/share/cmake/Torch")
+if(${ARCHITECTURE} STREQUAL "aarch64")
+    # Assuming these are the paths on Jetson Orin Nano
+    set(OpenCV_DIR "/usr/lib/cmake/opencv")
+    set(Torch_DIR "/home/singleuav_causlab/.local/lib/python3.10/site-packages/torch/share/cmake/Torch")
+endif()
 
 # C++17 사용 설정
 set(CMAKE_CXX_STANDARD 17)
