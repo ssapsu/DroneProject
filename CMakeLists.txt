@@ -8,6 +8,12 @@ set(PROJECT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 # Optionally, print the project root for debugging purposes
 message(STATUS "Project root directory: ${PROJECT_ROOT_DIR}")
 
+# uname 명령어를 통해 ARCHITECTURE 변수 설정
+execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+# ARCHITECTURE 변수가 올바르게 설정되었는지 확인
+message(STATUS "System architecture: ${ARCHITECTURE}")
+
 if(${ARCHITECTURE} STREQUAL "aarch64")
     # Assuming these are the paths on Jetson Orin Nano
     set(OpenCV_DIR "/usr/lib/cmake/opencv")
