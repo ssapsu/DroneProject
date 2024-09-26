@@ -15,6 +15,6 @@ float calculateFocalLength();
 float distanceToCamera(float knownWidth, float focalLength, float perWidth);
 
 // Process detections and calculate distance for each detected object
-void processDetections(const std::vector<Detection>& detections, const cv::Mat& image);
+void calculateParcelDistance(const std::vector<Detection>& detections, const cv::Mat& image);
 
 #endif  // OBJECT_DISTANCE_DETECTOR_H
