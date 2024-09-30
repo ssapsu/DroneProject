@@ -3,6 +3,7 @@
 
 // Camera-related constants (these values are just examples)
 const float SENSOR_WIDTH_MM = 3.68f;  // Sensor width in mm
+const float SENSOR_HEIGHT_MM = 2.76f;  // Sensor height in mm
 const int SENSOR_RESOLUTION_X = 1280;  // Horizontal resolution (in pixels)
 const int SENSOR_RESOLUTION_Y = 720;  // Vertical resolution (in pixels)
 const float FOCAL_LENGTH_MM = 3.04f;  // Focal length in mm
