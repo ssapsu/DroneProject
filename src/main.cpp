@@ -1,7 +1,7 @@
 #include "Camera.h"
 #include "ObjectDetector.h"
-#include <opencv2/opencv.hpp>
 #include "ObjectDistanceDetector.h"  // Include the distance calculation functions
+#include <opencv2/opencv.hpp>
 #include <iostream>
 #include <filesystem>
 
@@ -14,7 +14,7 @@ int main() {
         // Initialize ObjectDetector
         std::cout << "Initializing object detector..." << std::endl;
         std::string projectRoot = PROJECT_ROOT_DIR;
-        std::string model_path = projectRoot + "/models/best.torchscript";
+        std::string model_path = projectRoot + "/models/best_ringnParcel.torchscript";
         std::string class_names_path = projectRoot + "/models/parcel.txt";
 
         if (!std::filesystem::exists(model_path)) {
@@ -51,7 +51,10 @@ int main() {
                     cv::putText(frame, label, detection.box.tl(), cv::FONT_HERSHEY_SIMPLEX,
                                 0.5, cv::Scalar(255, 255, 255), 1);
                 }
-                processDetections(detections, frame);
+                calculateObjectDistances(detections, frame);
+
+                // change rgb to bgr
+                cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
                 // Display the frame
                 cv::imshow("Object Detection", frame);
 

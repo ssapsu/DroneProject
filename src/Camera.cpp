@@ -1,15 +1,16 @@
 // src/Camera.cpp
 #include "Camera.h"
+#include "CameraConstants.h"
 
 Camera::Camera(int deviceID, CameraType type)
     : cameraType(type) {
     if (cameraType == CameraType::CSI) {
         // CSI 카메라를 위한 GStreamer 파이프라인 생성
-        int capture_width = 1280;
-        int capture_height = 720;
-        int display_width = 1280;
-        int display_height = 720;
-        int framerate = 30;
+        int capture_width = SENSOR_RESOLUTION_X;
+        int capture_height = SENSOR_RESOLUTION_Y;
+        int display_width = SENSOR_RESOLUTION_X;
+        int display_height = SENSOR_RESOLUTION_Y;
+        int framerate = SENSOR_FPS;
         int flip_method = 0;
 
         std::string pipeline = gstreamerPipeline(

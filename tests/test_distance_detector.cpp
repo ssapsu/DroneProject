@@ -3,8 +3,7 @@
 #include "ObjectDetector.h"
 #include "ObjectDistanceDetector.h"  // Include the distance calculation functions
 
-<<<<<<< HEAD
-TEST(ObjectDistanceTest, EstimateDistance) {
+TEST(ObjectDistanceTest, EstimateObject) {
     // Load the test image
     std::string projectRoot = PROJECT_ROOT_DIR;
     std::string image_path = projectRoot + "/images/bus.jpeg";
@@ -16,29 +15,29 @@ TEST(ObjectDistanceTest, EstimateDistance) {
     std::string class_names_path = projectRoot + "/models/classes.txt";
     ObjectDetector detector("model_path", "class_names_path");
     std::vector<Detection> detections = detector.detect(image);
-=======
-// TEST(ObjectDistanceTest, EstimateDistance) {
-//     // Load the test image
-//     cv::Mat image = cv::imread("../images/image_17.jpg");
-//     ASSERT_FALSE(image.empty()) << "Failed to load image.";
+}
 
-//     // Initialize ObjectDetector and run detection
-//     ObjectDetector detector("../models/best.torchscript", "../models/parcel.txt");
-//     std::vector<Detection> detections = detector.detect(image);
->>>>>>> develop
+TEST(ObjectDistanceTest, EstimateDistance) {
+    // Load the test image
+    cv::Mat image = cv::imread("../images/image_17.jpg");
+    ASSERT_FALSE(image.empty()) << "Failed to load image.";
 
-//     // Ensure objects were detected
-//     ASSERT_GT(detections.size(), 0) << "No objects detected.";
+    // Initialize ObjectDetector and run detection
+    ObjectDetector detector("../models/best.torchscript", "../models/parcel.txt");
+    std::vector<Detection> detections = detector.detect(image);
 
-//     // Process the detections to calculate the distance and draw the results
-//     calculateParcelDistance(detections, image);
+    // Ensure objects were detected
+    ASSERT_GT(detections.size(), 0) << "No objects detected.";
 
-//     // Save the output image with bounding boxes and distance
-//     cv::imwrite("../output/detected_objects_with_distance.jpg", image);
+    // Process the detections to calculate the distance and draw the results
+    // calculateParcelDistance(detections, image);
 
-//     // Test assertion: at least one object must have a valid distance
-//     EXPECT_GT(detections[0].box.width, 0) << "Bounding box width should be greater than 0.";
-// }
+    // Save the output image with bounding boxes and distance
+    cv::imwrite("../output/detected_objects_with_distance.jpg", image);
+
+    // Test assertion: at least one object must have a valid distance
+    EXPECT_GT(detections[0].box.width, 0) << "Bounding box width should be greater than 0.";
+}
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
