@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "ObjectDetector.h"
 #include "ObjectDistanceDetector.h"  // Include the distance calculation functions
+#include "CameraConstants.h"         // Include the camera constants
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <filesystem>
@@ -26,6 +27,26 @@ int main() {
 
         ObjectDetector detector(model_path, class_names_path, 0.5f, 0.4f);
 
+        // Set up camera matrix and distortion coefficients for undistortion
+        cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) <<
+            FOCAL_LENGTH_PX, 0, PRINCIPAL_POINT_X,
+            0, FOCAL_LENGTH_PY, PRINCIPAL_POINT_Y,
+            0, 0, 1);
+
+        cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) <<
+            DISTORTION_COEFFS[0],
+            DISTORTION_COEFFS[1],
+            DISTORTION_COEFFS[2],
+            DISTORTION_COEFFS[3],
+            DISTORTION_COEFFS[4]);
+
+        // Compute the optimal new camera matrix (optional, but can improve results)
+        cv::Mat newCameraMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distCoeffs,
+                                                                cv::Size(SENSOR_RESOLUTION_X, SENSOR_RESOLUTION_Y),
+                                                                1,
+                                                                cv::Size(SENSOR_RESOLUTION_X, SENSOR_RESOLUTION_Y),
+                                                                0);
+
         while (true) {
             try {
                 // Capture frame
@@ -36,27 +57,18 @@ int main() {
                     continue;
                 }
 
-                // Perform object detection
-                std::vector<Detection> detections = detector.detect(frame);
+                // Undistort the frame
+                cv::Mat undistortedFrame;
+                cv::undistort(frame, undistortedFrame, cameraMatrix, distCoeffs, newCameraMatrix);
 
-                // Draw detections on the frame
-                for (const auto& detection : detections) {
-                    if (detection.box.area() <= 0 || detection.class_id < 0 ||
-                        detection.class_id >= detector.getClassNames().size()) {
-                        continue;
-                    }
-                    cv::rectangle(frame, detection.box, cv::Scalar(0, 255, 0), 2);
-                    std::string label = detector.getClassNames()[detection.class_id] +
-                                        ": " + cv::format("%.2f", detection.confidence);
-                    cv::putText(frame, label, detection.box.tl(), cv::FONT_HERSHEY_SIMPLEX,
-                                0.5, cv::Scalar(255, 255, 255), 1);
-                }
-                calculateObjectDistances(detections, frame);
+                // Perform object detection on the undistorted frame
+                std::vector<Detection> detections = detector.detect(undistortedFrame);
 
-                // change rgb to bgr
-                cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
+                // Calculate object distances and draw results
+                calculateObjectDistances(detections, undistortedFrame);
+
                 // Display the frame
-                cv::imshow("Object Detection", frame);
+                cv::imshow("Object Detection", undistortedFrame);
 
                 // Exit if 'q' is pressed
                 if (cv::waitKey(1) == 'q') {

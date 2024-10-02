@@ -15,6 +15,6 @@ float calculateFocalLength(float& focal_length_px, float& focal_length_py);
 float distanceToCamera(float knownWidth, float focalLength, float perWidth);
 
 // Process detections and calculate distance for each detected object
-void calculateObjectDistances(const std::vector<Detection>& detections, const cv::Mat& image);
+void calculateObjectDistances(const std::vector<Detection>& detections, cv::Mat& image);
 
 #endif  // OBJECT_DISTANCE_DETECTOR_H
